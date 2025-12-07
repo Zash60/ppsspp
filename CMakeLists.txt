@@ -4,10 +4,8 @@ project(PPSSPP)
 enable_testing()
 
 #This is supposed to work but doesn't!
-if(NOT ANDROID)
-	set(CMAKE_CXX_STANDARD 17)
-	set(CMAKE_CXX_STANDARD_REQUIRED ON)
-endif()
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 enable_language(ASM)
 
@@ -28,7 +26,7 @@ endif()
 
 # Detect CPU from CMAKE configuration. Toolchains should set this up
 if(CMAKE_SYSTEM_PROCESSOR)
-	if(CMAKE_OSX_ARCHITECTURES)
+	if(FALSE)
 		if("${CMAKE_OSX_ARCHITECTURES}" MATCHES ".*86.*")
 			set(X86_DEVICE ON)
 			set(X86_64_DEVICE ON)
@@ -88,12 +86,12 @@ if(NOT ANDROID AND NOT IOS)
 	endif()
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT USE_LIBNX)
+if(FALSE)
 	set(LINUX ON)
 	add_compile_definitions(__STDC_CONSTANT_MACROS)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(FALSE)
 	set(MACOSX ON)
 	set(USING_EGL OFF)
 endif()
@@ -103,21 +101,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Android")
 endif()
 
 # We only support Vulkan on Unix, macOS (by MoltenVK), Android and Windows.
-if(ANDROID OR WIN32 OR (UNIX AND NOT ARM_NO_VULKAN))
 	set(VULKAN ON)
-endif()
 
-# Default to bundled SDL2 on macOS, system SDL2 elsewhere.
-if(APPLE AND NOT IOS)
-	set(DEFAULT_USE_SYSTEM_LIBSDL2 OFF)
-else()
-	set(DEFAULT_USE_SYSTEM_LIBSDL2 ON)
-endif()
+
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
-if(NOT IOS)
-	list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/sdl)
-endif()
+
 
 include(CheckCXXSourceCompiles)
 include(GNUInstallDirs)
@@ -236,26 +225,15 @@ if(UNIX AND NOT (APPLE OR ANDROID) AND VULKAN)
 	endif()
 endif()
 
-if(LIBRETRO)
-	add_compile_definitions(__LIBRETRO__)
-	add_compile_definitions(GLEW_NO_GLU)
-	if(NOT MSVC)
-		add_compile_options(-fPIC)
-	endif()
-endif()
+
 
 if(ANDROID)
 	set(MOBILE_DEVICE ON)
 	set(USING_GLES2 ON)
 endif()
 
-if(ANDROID AND NOT LIBRETRO)
 	set(CoreLibName ppsspp_jni)
 	set(CoreLinkType SHARED)
-else()
-	set(CoreLibName Core)
-	set(CoreLinkType STATIC)
-endif()
 
 if(NOT ANDROID AND NOT WIN32 AND (NOT APPLE OR IOS))
 	set(HTTPS_NOT_AVAILABLE ON)
@@ -300,7 +278,7 @@ if(USING_EGL)
 	set(OPENGL_LIBRARIES ${OPENGL_LIBRARIES} ${EGL_LIBRARIES})
 endif()
 
-if(NOT LIBRETRO AND NOT IOS AND NOT MACOSX)
+if(FALSE)
 	find_package(SDL2)
 	find_package(SDL2_ttf)
 	find_package(Fontconfig)
@@ -314,24 +292,7 @@ if(NOT LIBRETRO AND NOT IOS AND NOT MACOSX)
 	endif()
 endif()
 
-if(MACOSX AND NOT IOS)
-	if(USE_SYSTEM_LIBSDL2)
-		find_package(SDL2)
-		find_package(SDL2_ttf)
-	else()
-		find_library(SDL2Fwk SDL2 REQUIRED PATHS SDL/macOS)
-		message(STATUS "found SDL2Fwk=${SDL2Fwk}")
-		add_compile_definitions(HAVE_SYSCTLBYNAME)
-	endif()
-endif()
-
 include(FindThreads)
-
-if(APPLE)
-	find_library(COCOA_LIBRARY Cocoa)
-	find_library(IOKIT_LIBRARY IOKit)
-	find_library(QUARTZ_CORE_LIBRARY QuartzCore)
-endif()
 
 include_directories("${CMAKE_SOURCE_DIR}")
 
@@ -412,10 +373,7 @@ if(NOT MSVC)
 			-Wno-sign-conversion
 			-Wno-shorten-64-to-32
 		)
-		if(MACOSX OR IOS)
-			# Hack around a bad check for __GNUC__ in basis_universal that makes it use old stuff on iOS
-			add_compile_options(-Wno-deprecated-builtins)
-		endif()
+
 	endif()
 
 	if(USE_ASAN)
@@ -458,41 +416,14 @@ if(NOT MSVC)
 
 	if(X86 OR X86_64)
 		# enable sse2 code generation
-		if(NOT MACOSX)
-			add_compile_options(-msse2)
-		endif()
-		if(NOT X86_64 AND NOT CLANG)
-			add_compile_options(-mfpmath=sse)
-			# add_compile_options(-mstackrealign)
-		endif()
+				add_compile_options(-msse2)
+			if(NOT X86_64 AND NOT CLANG)
+				add_compile_options(-mfpmath=sse)
+				# add_compile_options(-mstackrealign)
+			endif()
 	endif()
 
-	if(IOS)
-		set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0")
-	elseif(APPLE AND NOT CMAKE_CROSSCOMPILING)
-		if(LIBRETRO AND ARM64)
-			set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14")
-		else()
-			set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
-		endif()
-		add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-stdlib=libc++>" -U__STRICT_ANSI__)
-		set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-	elseif(NOT ANDROID)
-		# TODO: See if we can get rid of no-psabi
-		if(NOT ${CMAKE_C_COMPILER_ID} STREQUAL "Intel" AND NOT ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-			add_compile_options(-Wno-psabi)
-		endif()
-		add_compile_definitions(_XOPEN_SOURCE=700)
-		add_compile_definitions(_XOPEN_SOURCE_EXTENDED __BSD_VISIBLE=1 _BSD_SOURCE _DEFAULT_SOURCE)
-		if(CMAKE_SYSTEM_NAME MATCHES "Linux|SunOS" OR MINGW)
-			add_compile_definitions(_LARGEFILE64_SOURCE=1 _FILE_OFFSET_BITS=64)
-		endif()
-		if(${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
-			add_compile_definitions(_NETBSD_SOURCE)
-		endif()
-	elseif(ANDROID)
-		add_compile_options(-fsigned-char)
-	endif()
+		else	add_compile_options(-fsigned-char))
 
 	check_symbol_exists(getauxval sys/auxv.h HAVE_GETAUXVAL)
 	if(HAVE_GETAUXVAL)
@@ -503,39 +434,7 @@ if(NOT MSVC)
 	if(HAVE_ELF_AUX_INFO)
 		add_definitions(-DHAVE_ELF_AUX_INFO)
 	endif()
-else()
-	# Disable warnings about MS-specific _s variants of libc functions
-	add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
-	if (NOT CLANG)
-		add_compile_options(-MP)
-	endif()
-	add_link_options(/NODEFAULTLIB:"libcmt.lib")
-endif()
 
-if(WIN32)
-	add_compile_definitions(_UNICODE UNICODE)
-	add_compile_definitions(USING_WIN_UI)
-endif()
-
-if(NOT ANDROID)
-	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-endif()
-
-# This sets up the MSVC project dirs according to the physical project dirs
-macro(setup_target_project TargetName ProjectDir)
-	get_property(TargetSources TARGET "${TargetName}" PROPERTY SOURCES)
-	foreach(Source ${TargetSources})
-		# Figure out the file's path relative to the ProjectDir
-		# NOTE: &#$@ double-quoted regexps
-		string(REGEX REPLACE "${ProjectDir}" "" RelativePath "${Source}")
-		string(REGEX REPLACE "[\\\\/][^\\\\/]*$" "" RelativePath "${RelativePath}")
-		string(REGEX REPLACE "^[\\\\/]" "" RelativePath "${RelativePath}")
-		string(REGEX REPLACE "/" "\\\\\\\\" RelativePath "${RelativePath}")
-		# put the source file in a source_group equivalent to the relative path
-		source_group("${RelativePath}" FILES ${Source})
-	endforeach()
-endmacro()
 
 add_subdirectory(ext)
 
@@ -606,13 +505,7 @@ set(CommonLOONGARCH64
 )
 source_group(LOONGARCH64 FILES ${CommonLOONGARCH64})
 
-if(WIN32)
-	set(CommonD3D
-		Common/GPU/D3D11/thin3d_d3d11.cpp
-		Common/GPU/D3D11/D3D11Loader.cpp
-		Common/GPU/D3D11/D3D11Loader.h
-	)
-endif()
+
 
 set(CommonVR
 	Common/VR/OpenXRLoader.cpp
@@ -636,14 +529,11 @@ include_directories(ext/OpenXR-SDK/include)
 include_directories(ext)
 
 add_library(Common STATIC
-	${CommonX86}
-	${CommonARM}
-	${CommonARM64}
-	${CommonMIPS}
-	${CommonRISCV64}
-	${CommonLOONGARCH64}
-	${CommonD3D}
-	${CommonVR}
+		${CommonX86}
+		${CommonARM}
+		${CommonVR}
+		${CommonRISCV64}
+		${CommonLOONGARCH64}
 	Common/Serialize/Serializer.cpp
 	Common/Serialize/Serializer.h
 	Common/Serialize/SerializeDeque.h

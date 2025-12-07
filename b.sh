@@ -5,39 +5,12 @@ CMAKE=1
 while test $# -gt 0
 do
 	case "$1" in
-		--qt) echo "Qt enabled"
-			QT=1
-			CMAKE_ARGS="-DUSING_QT_UI=ON ${CMAKE_ARGS}"
-			;;
-		--qtbrew) echo "Qt enabled (homebrew)"
-			QT=1
-			CMAKE_ARGS="-DUSING_QT_UI=ON -DCMAKE_PREFIX_PATH=$(brew --prefix qt5) ${CMAKE_ARGS}"
-			;;
-		--ios) CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=cmake/Toolchains/ios.cmake ${CMAKE_ARGS}"
-			TARGET_OS=iOS
-			;;
-		--ios-xcode) CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=cmake/Toolchains/ios.cmake -DIOS_PLATFORM=OS -GXcode ${CMAKE_ARGS}"
-			TARGET_OS=iOS-xcode
-			;;
-		--fat) CMAKE_ARGS="-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64 ${CMAKE_ARGS}"
-			;;
-		--x64) CMAKE_ARGS="-DCMAKE_OSX_ARCHITECTURES=x86_64 ${CMAKE_ARGS}"
-			;;
-		--arm64) CMAKE_ARGS="-DCMAKE_OSX_ARCHITECTURES=arm64 ${CMAKE_ARGS}"
-			;;
+
 		--no-png) CMAKE_ARGS="-DUSE_SYSTEM_LIBPNG=OFF ${CMAKE_ARGS}"
 			;;
 		--no-sdl2) CMAKE_ARGS="-DUSE_SYSTEM_LIBSDL2=OFF ${CMAKE_ARGS}"
 			;;
-		--rpi-armv6)
-			CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=cmake/Toolchains/raspberry.armv6.cmake ${CMAKE_ARGS}"
-			;;
-		--rpi)
-			CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=cmake/Toolchains/raspberry.armv7.cmake ${CMAKE_ARGS}"
-			;;
-		--rpi64)
-			CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=cmake/Toolchains/raspberry.armv8.cmake ${CMAKE_ARGS}"
-			;;
+
 		--android) CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=android/android.toolchain.cmake ${CMAKE_ARGS}"
 			TARGET_OS=Android
 			PACKAGE=1
@@ -60,12 +33,8 @@ do
 		--atlas-tool) echo "Atlas tool enabled"
 			CMAKE_ARGS="-DATLAS_TOOL=ON ${CMAKE_ARGS}"
 			;;
-		--libretro) echo "Build Libretro core"
-			CMAKE_ARGS="-DLIBRETRO=ON ${CMAKE_ARGS}"
-			;;
-		--libretro_android) echo "Build Libretro Android core"
-		        CMAKE_ARGS="-DLIBRETRO=ON -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_ABI=${APP_ABI} ${CMAKE_ARGS}"
-			;;
+
+
 		--unittest) echo "Build unittest"
 			CMAKE_ARGS="-DUNITTEST=ON ${CMAKE_ARGS}"
 			;;
@@ -100,20 +69,14 @@ do
 	shift
 done
 
-if [ ! -z "$TARGET_OS" ]; then
-	echo "Building for $TARGET_OS"
-	BUILD_DIR="$(tr [A-Z] [a-z] <<< build-"$TARGET_OS")"
-else
-	echo "Building for native host."
-	BUILD_DIR="build"
-fi
-
-CORES_COUNT=4
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        CORES_COUNT="$(nproc)"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-        CORES_COUNT="$(sysctl -n hw.physicalcpu)"
-fi
+	echo "Building for Android"
+	BUILD_DIR="build-android"
+	
+	CORES_COUNT=4
+	# Simplified core count logic for Android build environment
+	# Assuming a fixed number of cores or using a default for simplicity
+	# In a real Android NDK build, this is often handled by the build system.
+	# Keeping a default for this script's purpose.
 
 # Strict errors. Any non-zero return exits this script
 set -e

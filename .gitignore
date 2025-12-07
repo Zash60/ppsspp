@@ -22,46 +22,14 @@ controls.ini
 desktop.ini
 Debug
 Release
-Windows/.vs
-Windows/x64
-Windows/ARM
-Windows/ARM64
-Windows/ipch
-Windows/bin-release
-Windows/win-version.h
-Windows/win-version-*.tmp
 android/assets
 ext/_Output
 android/lint.xml
-PPSSPPWindows64.exe.manifest
-PPSSPPWindows.exe.manifest
-PPSSPPWindowsARM64.exe.manifest
-PPSSPPWindowsARM.exe.manifest
-PPSSPPDebug64.exe.manifest
-PPSSPPDebug.exe.manifest
-PPSSPPDebugARM64.exe.manifest
-PPSSPPDebugARM.exe.manifest
-assets/flash0
-UWP/icph
-UWP/*.ipch
-UWP/Content/*
-!UWP/Content/.empty
-UWP/.vs
-.vs
-.vscode
-
-# For Mac
-.DS_Store
-PPSSPPSDL.app
-include/glslang/build_info.h
-
-# For ppsspp.ini, etc.
-ppsspp.ini
-imgui.ini
-PPSSPPControls.dat
-
-# Qt Linguist files
-*.qm
+android/.cxx
+android/assets/lang
+android/assets/flash0
+local.properties
+r.sh
 
 # Gradle/Android Studio
 .gradle
@@ -71,10 +39,11 @@ build
 /build*/
 versionname.txt
 versioncode.txt
-android/.cxx
 
-# Temp file used by jenkins windows build (TODO: remove)
-desc.txt
+# For ppsspp.ini, etc.
+ppsspp.ini
+imgui.ini
+PPSSPPControls.dat
 
 Logs
 Memstick
@@ -92,17 +61,9 @@ __testfailure.bmp
 __testcompare.png
 GameLogNotes.txt
 screenshots
-android/assets/lang
-android/assets/flash0
 font_atlas.zim.png
 asciifont_atlas.zim.png
 ppge_atlas.zim.png
-local.properties
-r.sh
-Windows/compileData*
-Windows/*.ipch
-Windows/imgui.ini
-imgui.ini
 
 # debug file
 ui_atlas_gen.png
@@ -117,16 +78,6 @@ tags
 .bzr/
 .bzrignore
 
-# Debian build
-debian/files
-debian/ppsspp.substvars
-debian/ppsspp/
-
-# Libretro build
-*.o
-*.tmp
-*.a
-
 # YouCompleteMe file
 .ycm_extra_conf.pyc
 
@@ -140,14 +91,7 @@ compile_commands.json
 
 # Clangd 
 .cache/
-build
-libretro/obj/local
 
 ppsspp_retroachievements.dat
 RACache
 RAPrefs_PPSSPP.cfg
-
-# For CLion
-cmake-build-*/
-
-/.vscode/
